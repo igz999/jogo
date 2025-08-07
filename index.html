@@ -2,64 +2,141 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Quiz Rápido</title>
+  <title>Quiz Rápido - Versão Estilizada</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      max-width: 500px;
-      margin: 40px auto;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       padding: 20px;
-      background: #f9f9f9;
-      border-radius: 10px;
+      color: #fff;
+    }
+
+    #quiz-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      padding: 30px 40px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
       text-align: center;
+      transition: all 0.3s ease;
     }
+
+    h1 {
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      letter-spacing: 1.2px;
+    }
+
     .pergunta {
-      font-size: 20px;
-      margin-bottom: 15px;
+      font-size: 1.4rem;
+      margin-bottom: 25px;
+      font-weight: 600;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
     }
+
+    #opcoes {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
     .opcao {
-      display: block;
-      margin: 8px 0;
-      padding: 8px;
-      background: #e0e0e0;
+      background: rgba(255, 255, 255, 0.15);
       border: none;
-      border-radius: 6px;
+      padding: 15px 20px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      color: #fff;
       cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: background 0.25s ease, transform 0.15s ease;
+      user-select: none;
     }
-    .opcao:hover {
-      background: #d4d4d4;
+    .opcao:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     }
+    .opcao:disabled {
+      cursor: default;
+      opacity: 0.6;
+      transform: none;
+      background: rgba(0, 0, 0, 0.25);
+    }
+
     #resultado {
-      margin-top: 20px;
-      font-weight: bold;
-      font-size: 18px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-top: 10px;
+      min-height: 1.5em;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.5);
+      user-select: none;
     }
-    button#proximo {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 6px;
+
+    #proximo {
+      background: #2575fc;
       border: none;
-      background-color: #007bff;
-      color: white;
+      color: #fff;
+      font-size: 1.1rem;
+      padding: 12px 30px;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 15px rgba(37, 117, 252, 0.6);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
     }
-    button#proximo:hover {
-      background-color: #0056b3;
+    #proximo:hover {
+      background: #1a52c2;
+      box-shadow: 0 8px 22px rgba(26, 82, 194, 0.85);
+    }
+    #proximo:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px #89aaff;
+    }
+
+    /* Responsividade */
+    @media (max-width: 520px) {
+      #quiz-container {
+        padding: 25px 20px;
+      }
+      .pergunta {
+        font-size: 1.2rem;
+      }
+      .opcao {
+        font-size: 1rem;
+        padding: 12px 16px;
+      }
+      #proximo {
+        font-size: 1rem;
+        padding: 10px 24px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h1>Quiz Rápido</h1>
-  <div id="quiz-container">
+  <div id="quiz-container" role="main" aria-live="polite">
+    <h1>Quiz Rápido</h1>
     <div class="pergunta" id="pergunta"></div>
     <div id="opcoes"></div>
-    <button id="proximo" onclick="proximaPergunta()">Próxima</button>
+    <button id="proximo" onclick="proximaPergunta()" style="display:none;" aria-label="Próxima pergunta">Próxima</button>
+    <div id="resultado" aria-live="assertive"></div>
   </div>
-  <div id="resultado"></div>
 
   <script>
     const perguntas = [
@@ -113,20 +190,37 @@
         btn.textContent = opcao;
         btn.classList.add('opcao');
         btn.onclick = () => responder(index);
+        btn.disabled = false;
         opcoesEl.appendChild(btn);
       });
     }
 
     function responder(indiceEscolhido) {
       if (respondido) return;
-
       respondido = true;
       proximoBtn.style.display = "inline-block";
 
       const p = perguntas[indicePergunta];
+      const botoes = opcoesEl.querySelectorAll('button');
+
+      botoes.forEach((btn, idx) => {
+        btn.disabled = true;
+        if(idx === p.correta) {
+          btn.style.backgroundColor = '#28a745'; // verde para correta
+          btn.style.color = '#fff';
+          btn.style.boxShadow = '0 0 10px #28a745';
+        } else if (idx === indiceEscolhido) {
+          btn.style.backgroundColor = '#dc3545'; // vermelho para errada
+          btn.style.color = '#fff';
+          btn.style.boxShadow = '0 0 10px #dc3545';
+        } else {
+          btn.style.opacity = '0.7';
+        }
+      });
+
       if (indiceEscolhido === p.correta) {
         pontos++;
-        resultadoEl.textContent = "Resposta correta!";
+        resultadoEl.textContent = "Resposta correta! 🎉";
       } else {
         resultadoEl.textContent = `Resposta errada! A resposta certa é: "${p.opcoes[p.correta]}"`;
       }
@@ -142,10 +236,10 @@
     }
 
     function mostrarResultadoFinal() {
-      perguntaEl.textContent = "";
+      perguntaEl.textContent = "Quiz finalizado!";
       opcoesEl.innerHTML = "";
       proximoBtn.style.display = "none";
-      resultadoEl.textContent = `Quiz finalizado! Você acertou ${pontos} de ${perguntas.length} perguntas.`;
+      resultadoEl.textContent = `Você acertou ${pontos} de ${perguntas.length} perguntas. Obrigado por jogar! 😊`;
     }
 
     carregarPergunta();
