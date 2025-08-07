@@ -2,70 +2,154 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Jogo de Adivinhação</title>
+  <title>Quiz Rápido</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 400px;
+      max-width: 500px;
       margin: 40px auto;
       padding: 20px;
-      text-align: center;
-      background: #f0f0f0;
+      background: #f9f9f9;
       border-radius: 10px;
+      text-align: center;
     }
-    input[type="number"] {
-      width: 80px;
-      padding: 5px;
-      font-size: 16px;
+    .pergunta {
+      font-size: 20px;
+      margin-bottom: 15px;
     }
-    button {
-      padding: 6px 12px;
-      font-size: 16px;
-      margin-left: 10px;
+    .opcao {
+      display: block;
+      margin: 8px 0;
+      padding: 8px;
+      background: #e0e0e0;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .opcao:hover {
+      background: #d4d4d4;
     }
     #resultado {
       margin-top: 20px;
       font-weight: bold;
+      font-size: 18px;
+    }
+    button#proximo {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+    }
+    button#proximo:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
 <body>
-  <h1>Jogo de Adivinhação</h1>
-  <p>Tente adivinhar o número entre 1 e 100.</p>
 
-  <input id="palpite" type="number" min="1" max="100" />
-  <button onclick="verificarPalpite()">Chutar</button>
-
+  <h1>Quiz Rápido</h1>
+  <div id="quiz-container">
+    <div class="pergunta" id="pergunta"></div>
+    <div id="opcoes"></div>
+    <button id="proximo" onclick="proximaPergunta()">Próxima</button>
+  </div>
   <div id="resultado"></div>
 
   <script>
-    const numeroSecreto = Math.floor(Math.random() * 100) + 1;
-    let tentativas = 0;
-
-    function verificarPalpite() {
-      const input = document.getElementById('palpite');
-      const palpite = Number(input.value);
-      const resultado = document.getElementById('resultado');
-
-      if (!palpite || palpite < 1 || palpite > 100) {
-        resultado.textContent = 'Por favor, digite um número válido entre 1 e 100.';
-        return;
+    const perguntas = [
+      {
+        pergunta: "Qual a capital do Brasil?",
+        opcoes: ["São Paulo", "Brasília", "Rio de Janeiro", "Salvador"],
+        correta: 1
+      },
+      {
+        pergunta: "Qual é o maior planeta do sistema solar?",
+        opcoes: ["Terra", "Marte", "Júpiter", "Saturno"],
+        correta: 2
+      },
+      {
+        pergunta: "Quem escreveu 'Dom Casmurro'?",
+        opcoes: ["Machado de Assis", "José de Alencar", "Clarice Lispector", "Carlos Drummond"],
+        correta: 0
+      },
+      {
+        pergunta: "Qual é a fórmula química da água?",
+        opcoes: ["CO2", "H2O", "O2", "NaCl"],
+        correta: 1
+      },
+      {
+        pergunta: "Em que ano o Brasil ganhou a sua primeira Copa do Mundo?",
+        opcoes: ["1958", "1962", "1970", "1994"],
+        correta: 0
       }
+    ];
 
-      tentativas++;
+    let indicePergunta = 0;
+    let pontos = 0;
+    let respondido = false;
 
-      if (palpite < numeroSecreto) {
-        resultado.textContent = 'Muito baixo! Tente um número maior.';
-      } else if (palpite > numeroSecreto) {
-        resultado.textContent = 'Muito alto! Tente um número menor.';
-      } else {
-        resultado.textContent = `Parabéns! Você acertou o número em ${tentativas} tentativas.`;
-      }
+    const perguntaEl = document.getElementById('pergunta');
+    const opcoesEl = document.getElementById('opcoes');
+    const resultadoEl = document.getElementById('resultado');
+    const proximoBtn = document.getElementById('proximo');
 
-      input.value = '';
-      input.focus();
+    function carregarPergunta() {
+      respondido = false;
+      resultadoEl.textContent = "";
+      proximoBtn.style.display = "none";
+
+      const p = perguntas[indicePergunta];
+      perguntaEl.textContent = p.pergunta;
+      opcoesEl.innerHTML = "";
+
+      p.opcoes.forEach((opcao, index) => {
+        const btn = document.createElement('button');
+        btn.textContent = opcao;
+        btn.classList.add('opcao');
+        btn.onclick = () => responder(index);
+        opcoesEl.appendChild(btn);
+      });
     }
+
+    function responder(indiceEscolhido) {
+      if (respondido) return;
+
+      respondido = true;
+      proximoBtn.style.display = "inline-block";
+
+      const p = perguntas[indicePergunta];
+      if (indiceEscolhido === p.correta) {
+        pontos++;
+        resultadoEl.textContent = "Resposta correta!";
+      } else {
+        resultadoEl.textContent = `Resposta errada! A resposta certa é: "${p.opcoes[p.correta]}"`;
+      }
+    }
+
+    function proximaPergunta() {
+      indicePergunta++;
+      if (indicePergunta < perguntas.length) {
+        carregarPergunta();
+      } else {
+        mostrarResultadoFinal();
+      }
+    }
+
+    function mostrarResultadoFinal() {
+      perguntaEl.textContent = "";
+      opcoesEl.innerHTML = "";
+      proximoBtn.style.display = "none";
+      resultadoEl.textContent = `Quiz finalizado! Você acertou ${pontos} de ${perguntas.length} perguntas.`;
+    }
+
+    carregarPergunta();
   </script>
+
 </body>
 </html>
