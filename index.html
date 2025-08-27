@@ -270,10 +270,22 @@
       perguntaEl.textContent = "Quiz finalizado!";
       opcoesEl.innerHTML = "";
       proximoBtn.style.display = "none";
-      resultadoEl.textContent = `Você acertou ${pontos} de ${perguntas.length} perguntas. Obrigado por jogar! 😊`;
+
+      let mensagem = `Você acertou ${pontos} de ${perguntas.length} perguntas. `;
+
+      if (pontos <= 5) {
+        mensagem += "O quiz acabou, mas você pode melhorar e estudar mais!";
+      } else if (pontos <= 8) {
+        mensagem += "Você está na média, mas precisa se aperfeiçoar.";
+      } else {
+        mensagem += "Parabéns! Você acertou todas!";
+      }
+
+      resultadoEl.textContent = mensagem;
     }
 
     carregarPergunta();
   </script>
 
 </body>
+</html>
