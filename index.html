@@ -88,7 +88,14 @@
       user-select: none;
     }
 
-    #proximo {
+    #botoes-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    button#proximo, button#voltar {
       background: #2575fc;
       border: none;
       color: #fff;
@@ -99,14 +106,19 @@
       box-shadow: 0 6px 15px rgba(37, 117, 252, 0.6);
       transition: background-color 0.3s ease, box-shadow 0.3s ease;
       user-select: none;
+      min-width: 110px;
     }
-    #proximo:hover {
+    button#proximo:hover, button#voltar:hover {
       background: #1a52c2;
       box-shadow: 0 8px 22px rgba(26, 82, 194, 0.85);
     }
-    #proximo:focus {
+    button#proximo:focus, button#voltar:focus {
       outline: none;
       box-shadow: 0 0 0 3px #89aaff;
+    }
+    button#voltar:disabled {
+      opacity: 0.5;
+      cursor: default;
     }
 
     /* Responsividade */
@@ -121,9 +133,10 @@
         font-size: 1rem;
         padding: 12px 16px;
       }
-      #proximo {
+      #botoes-container button {
         font-size: 1rem;
         padding: 10px 24px;
+        min-width: 90px;
       }
     }
   </style>
@@ -134,7 +147,10 @@
     <h1>Quiz Rápido</h1>
     <div class="pergunta" id="pergunta"></div>
     <div id="opcoes"></div>
-    <button id="proximo" onclick="proximaPergunta()" style="display:none;" aria-label="Próxima pergunta">Próxima</button>
+    <div id="botoes-container">
+      <button id="voltar" onclick="voltarPergunta()" style="display:none;" aria-label="Pergunta anterior">Voltar</button>
+      <button id="proximo" onclick="proximaPergunta()" style="display:none;" aria-label="Próxima pergunta">Próxima</button>
+    </div>
     <div id="resultado" aria-live="assertive"></div>
   </div>
 
@@ -195,11 +211,14 @@
     let indicePergunta = 0;
     let pontos = 0;
     let respondido = false;
+    // Array para guardar a resposta do usuário em cada pergunta (índice da opção escolhida ou null)
+    let respostas = Array(perguntas.length).fill(null);
 
     const perguntaEl = document.getElementById('pergunta');
     const opcoesEl = document.getElementById('opcoes');
     const resultadoEl = document.getElementById('resultado');
     const proximoBtn = document.getElementById('proximo');
+    const voltarBtn = document.getElementById('voltar');
 
     function carregarPergunta() {
       respondido = false;
@@ -220,72 +239,54 @@
         btn.style.color = "#fff";
         btn.style.boxShadow = "";
         btn.style.opacity = "1";
+
+        // Se já respondeu essa pergunta, mostrar selecionado e desabilitar botão para não clicar novamente
+        if (respostas[indicePergunta] !== null) {
+          btn.disabled = true;
+          if(index === perguntas[indicePergunta].correta) {
+            btn.style.backgroundColor = '#28a745'; // verde para correta
+            btn.style.color = '#fff';
+            btn.style.boxShadow = '0 0 10px #28a745';
+            btn.style.opacity = '1';
+          }
+          if(index === respostas[indicePergunta] && respostas[indicePergunta] !== perguntas[indicePergunta].correta) {
+            btn.style.backgroundColor = '#dc3545'; // vermelho para errada
+            btn.style.color = '#fff';
+            btn.style.boxShadow = '0 0 10px #dc3545';
+            btn.style.opacity = '1';
+          }
+          if(index !== perguntas[indicePergunta].correta && index !== respostas[indicePergunta]) {
+            btn.style.opacity = '0.6';
+          }
+        }
+
         opcoesEl.appendChild(btn);
       });
+
+      // Mostrar botão Voltar se não for a primeira pergunta e se quiz não finalizou
+      voltarBtn.style.display = indicePergunta > 0 && indicePergunta < perguntas.length ? "inline-block" : "none";
+
+      // Se já respondeu essa pergunta, mostrar botão Próxima, senão esconder
+      proximoBtn.style.display = respostas[indicePergunta] !== null ? "inline-block" : "none";
+
+      // Mostrar resultado da pergunta se já respondida
+      if(respostas[indicePergunta] !== null) {
+        respondido = true;
+        if(respostas[indicePergunta] === perguntas[indicePergunta].correta) {
+          resultadoEl.textContent = "Resposta correta! 🎉";
+        } else {
+          resultadoEl.textContent = `Resposta errada! A resposta certa é: "${p.opcoes[p.correta]}"`;
+        }
+      } else {
+        resultadoEl.textContent = "";
+      }
     }
 
     function responder(indiceEscolhido) {
       if (respondido) return;
       respondido = true;
-      proximoBtn.style.display = "inline-block";
 
       const p = perguntas[indicePergunta];
       const botoes = opcoesEl.querySelectorAll('button');
 
-      botoes.forEach((btn, idx) => {
-        btn.disabled = true;
-        if(idx === p.correta) {
-          btn.style.backgroundColor = '#28a745'; // verde para correta
-          btn.style.color = '#fff';
-          btn.style.boxShadow = '0 0 10px #28a745';
-          btn.style.opacity = '1';
-        } else if (idx === indiceEscolhido) {
-          btn.style.backgroundColor = '#dc3545'; // vermelho para errada
-          btn.style.color = '#fff';
-          btn.style.boxShadow = '0 0 10px #dc3545';
-          btn.style.opacity = '1';
-        } else {
-          btn.style.opacity = '0.6';
-        }
-      });
-
-      if (indiceEscolhido === p.correta) {
-        pontos++;
-        resultadoEl.textContent = "Resposta correta! 🎉";
-      } else {
-        resultadoEl.textContent = `Resposta errada! A resposta certa é: "${p.opcoes[p.correta]}"`;
-      }
-    }
-
-    function proximaPergunta() {
-      indicePergunta++;
-      if (indicePergunta < perguntas.length) {
-        carregarPergunta();
-      } else {
-        mostrarResultadoFinal();
-      }
-    }
-
-    function mostrarResultadoFinal() {
-      perguntaEl.textContent = "Quiz finalizado!";
-      opcoesEl.innerHTML = "";
-      proximoBtn.style.display = "none";
-
-      let mensagem = `Você acertou ${pontos} de ${perguntas.length} perguntas. `;
-
-      if (pontos <= 5) {
-        mensagem += "O quiz acabou, mas você pode melhorar e estudar mais!";
-      } else if (pontos <= 8) {
-        mensagem += "Você está na média, mas precisa se aperfeiçoar.";
-      } else {
-        mensagem += "Parabéns! Você acertou todas as perguntas! Tá praticamente um mestre do quiz! 🎉🔥";
-      }
-
-      resultadoEl.textContent = mensagem;
-    }
-
-    carregarPergunta();
-  </script>
-
-</body>
-</html>
+      botoes
