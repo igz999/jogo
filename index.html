@@ -109,6 +109,29 @@
       box-shadow: 0 0 0 3px #89aaff;
     }
 
+    #reiniciar {
+      display: none;
+      margin-top: 15px;
+      background: #28a745;
+      border: none;
+      color: #fff;
+      font-size: 1.1rem;
+      padding: 12px 30px;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 15px rgba(40, 167, 69, 0.7);
+      user-select: none;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    #reiniciar:hover {
+      background: #218838;
+      box-shadow: 0 8px 22px rgba(33, 136, 56, 0.85);
+    }
+    #reiniciar:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px #a3d9a5;
+    }
+
     /* Responsividade */
     @media (max-width: 520px) {
       #quiz-container {
@@ -121,7 +144,7 @@
         font-size: 1rem;
         padding: 12px 16px;
       }
-      #proximo {
+      #proximo, #reiniciar {
         font-size: 1rem;
         padding: 10px 24px;
       }
@@ -131,10 +154,11 @@
 <body>
 
   <div id="quiz-container" role="main" aria-live="polite">
-    <h1>Quiz - Multitemas</h1>
+    <h1>Quiz</h1>
     <div class="pergunta" id="pergunta"></div>
     <div id="opcoes"></div>
     <button id="proximo" onclick="proximaPergunta()" style="display:none;" aria-label="Próxima pergunta">Próxima</button>
+    <button id="reiniciar" onclick="reiniciarQuiz()" aria-label="Reiniciar quiz">Reiniciar</button>
     <div id="resultado" aria-live="assertive"></div>
   </div>
 
@@ -200,11 +224,13 @@
     const opcoesEl = document.getElementById('opcoes');
     const resultadoEl = document.getElementById('resultado');
     const proximoBtn = document.getElementById('proximo');
+    const reiniciarBtn = document.getElementById('reiniciar');
 
     function carregarPergunta() {
       respondido = false;
       resultadoEl.textContent = "";
       proximoBtn.style.display = "none";
+      reiniciarBtn.style.display = "none";
 
       const p = perguntas[indicePergunta];
       perguntaEl.textContent = p.pergunta;
@@ -234,7 +260,7 @@
 
       botoes.forEach((btn, idx) => {
         btn.disabled = true;
-        if(idx === p.correta) {
+        if (idx === p.correta) {
           btn.style.backgroundColor = '#28a745'; // verde para correta
           btn.style.color = '#fff';
           btn.style.boxShadow = '0 0 10px #28a745';
@@ -244,21 +270,29 @@
           btn.style.color = '#fff';
           btn.style.boxShadow = '0 0 10px #dc3545';
           btn.style.opacity = '1';
-        } else {
-          btn.style.opacity = '0.6';
         }
       });
 
       if (indiceEscolhido === p.correta) {
         pontos++;
-        resultadoEl.textContent = "Resposta correta! 🎉";
+        resultadoEl.textContent = "Resposta correta!";
       } else {
-        resultadoEl.textContent = `Resposta errada! A resposta certa é: "${p.opcoes[p.correta]}"`;
+        resultadoEl.textContent = `Resposta errada! A resposta correta é: "${p.opcoes[p.correta]}".`;
+      }
+
+      // Se for a última pergunta, mudar o botão "Próxima" para "Finalizar"
+      if (indicePergunta === perguntas.length - 1) {
+        proximoBtn.textContent = "Finalizar";
+      } else {
+        proximoBtn.textContent = "Próxima";
       }
     }
 
     function proximaPergunta() {
+      if (!respondido) return; // não permite avançar sem responder
+
       indicePergunta++;
+
       if (indicePergunta < perguntas.length) {
         carregarPergunta();
       } else {
@@ -269,21 +303,21 @@
     function mostrarResultadoFinal() {
       perguntaEl.textContent = "Quiz finalizado!";
       opcoesEl.innerHTML = "";
+      resultadoEl.textContent = `Você acertou ${pontos} de ${perguntas.length} perguntas.`;
       proximoBtn.style.display = "none";
-
-      let mensagem = `Você acertou ${pontos} de ${perguntas.length} perguntas. `;
-
-      if (pontos <= 5) {
-        mensagem += "O quiz acabou, mas você pode melhorar e estudar mais!";
-      } else if (pontos <= 8) {
-        mensagem += "Você está na média, mas precisa se aperfeiçoar.";
-      } else {
-        mensagem += "Parabéns! Você acertou todas as perguntas! Tá praticamente um mestre do quiz! 🎉🔥";
-      }
-
-      resultadoEl.textContent = mensagem;
+      reiniciarBtn.style.display = "inline-block";
     }
 
+    function reiniciarQuiz() {
+      indicePergunta = 0;
+      pontos = 0;
+      carregarPergunta();
+      resultadoEl.textContent = "";
+      reiniciarBtn.style.display = "none";
+      proximoBtn.style.display = "none";
+    }
+
+    // Inicializa o quiz
     carregarPergunta();
   </script>
 
