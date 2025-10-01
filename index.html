@@ -99,6 +99,7 @@
       box-shadow: 0 6px 15px rgba(37, 117, 252, 0.6);
       transition: background-color 0.3s ease, box-shadow 0.3s ease;
       user-select: none;
+      display: none;
     }
     #proximo:hover {
       background: #1a52c2;
@@ -157,8 +158,8 @@
     <h1>Quiz</h1>
     <div class="pergunta" id="pergunta"></div>
     <div id="opcoes"></div>
-    <button id="proximo" onclick="proximaPergunta()" style="display:none;" aria-label="Próxima pergunta">Próxima</button>
-    <button id="reiniciar" onclick="reiniciarQuiz()" aria-label="Reiniciar quiz">Reiniciar</button>
+    <button id="proximo" aria-label="Próxima pergunta">Próxima</button>
+    <button id="reiniciar" aria-label="Reiniciar quiz">Reiniciar</button>
     <div id="resultado" aria-live="assertive"></div>
   </div>
 
@@ -280,7 +281,7 @@
         resultadoEl.textContent = `Resposta errada! A resposta correta é: "${p.opcoes[p.correta]}".`;
       }
 
-      // Se for a última pergunta, mudar o botão "Próxima" para "Finalizar"
+      // Se for a última pergunta, mudar o texto do botão "Próxima" para "Finalizar"
       if (indicePergunta === perguntas.length - 1) {
         proximoBtn.textContent = "Finalizar";
       } else {
@@ -303,7 +304,17 @@
     function mostrarResultadoFinal() {
       perguntaEl.textContent = "Quiz finalizado!";
       opcoesEl.innerHTML = "";
-      resultadoEl.textContent = `Você acertou ${pontos} de ${perguntas.length} perguntas.`;
+
+      let mensagem = "";
+      if (pontos <= 3) {
+        mensagem = "Você pode melhorar mais!";
+      } else if (pontos <= 6) {
+        mensagem = "Você está na média!";
+      } else {
+        mensagem = "Você está muito bom!";
+      }
+
+      resultadoEl.textContent = `Você acertou ${pontos} de ${perguntas.length} perguntas. ${mensagem}`;
       proximoBtn.style.display = "none";
       reiniciarBtn.style.display = "inline-block";
     }
@@ -316,6 +327,9 @@
       reiniciarBtn.style.display = "none";
       proximoBtn.style.display = "none";
     }
+
+    proximoBtn.addEventListener('click', proximaPergunta);
+    reiniciarBtn.addEventListener('click', reiniciarQuiz);
 
     // Inicializa o quiz
     carregarPergunta();
