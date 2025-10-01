@@ -72,7 +72,6 @@
       font-weight: 600;
       text-shadow: 0 1px 5px rgba(0,0,0,0.45);
       min-height: 4.5rem;
-      transition: opacity 0.4s ease;
     }
 
     #opcoes {
@@ -152,16 +151,6 @@
     #proximo:focus {
       outline: none;
       box-shadow: 0 0 0 4px #89aaff;
-    }
-
-    /* Animação suave para troca de perguntas */
-    .fade-out {
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    .fade-in {
-      opacity: 1;
-      transition: opacity 0.3s ease;
     }
 
     /* Responsividade */
@@ -287,32 +276,21 @@
       atualizarContador();
 
       const p = perguntas[indicePergunta];
+      perguntaEl.textContent = p.pergunta;
+      opcoesEl.innerHTML = "";
 
-      // animação suave
-      perguntaEl.classList.add('fade-out');
-      opcoesEl.classList.add('fade-out');
-
-      setTimeout(() => {
-        perguntaEl.textContent = p.pergunta;
-        perguntaEl.classList.remove('fade-out');
-        perguntaEl.classList.add('fade-in');
-
-        opcoesEl.innerHTML = "";
-        p.opcoes.forEach((opcao, index) => {
-          const btn = document.createElement('button');
-          btn.textContent = opcao;
-          btn.classList.add('opcao');
-          btn.onclick = () => responder(index);
-          btn.disabled = false;
-          btn.style.backgroundColor = "";
-          btn.style.color = "#fff";
-          btn.style.boxShadow = "";
-          btn.style.opacity = "1";
-          opcoesEl.appendChild(btn);
-        });
-        opcoesEl.classList.remove('fade-out');
-        opcoesEl.classList.add('fade-in');
-      }, 300);
+      p.opcoes.forEach((opcao, index) => {
+        const btn = document.createElement('button');
+        btn.textContent = opcao;
+        btn.classList.add('opcao');
+        btn.onclick = () => responder(index);
+        btn.disabled = false;
+        btn.style.backgroundColor = "";
+        btn.style.color = "#fff";
+        btn.style.boxShadow = "";
+        btn.style.opacity = "1";
+        opcoesEl.appendChild(btn);
+      });
     }
 
     function responder(indiceEscolhido) {
@@ -323,12 +301,3 @@
       const p = perguntas[indicePergunta];
       const botoes = opcoesEl.querySelectorAll('button');
 
-      botoes.forEach((btn, idx) => {
-        btn.disabled = true;
-        if(idx === p.correta) {
-          btn.style.backgroundColor = '#28a745'; // verde para correta
-          btn.style.color = '#fff';
-          btn.style.boxShadow = '0 0 12px #28a745';
-          btn.style.opacity = '1';
-        } else if (idx === indiceEscolhido) {
-          btn.style.backgroundColor
